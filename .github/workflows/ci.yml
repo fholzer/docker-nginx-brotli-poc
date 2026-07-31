@@ -29,6 +29,8 @@ jobs:
     outputs:
       nginx_versions: ${{ steps.nginx_versions.outputs.nginx_versions }}
     steps:
+      - uses: actions/checkout@v6
+
       - name: Read nginx versions
         id: nginx_versions
         run: |
