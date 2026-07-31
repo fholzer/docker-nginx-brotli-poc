@@ -54,7 +54,7 @@ FROM alpine:$ALPINE_VERSION AS base
 RUN apk upgrade --no-cache
 
 
-FROM base AS builderBase
+FROM base AS builder-base
 
 RUN \
 	apk add --no-cache --virtual .build-deps \
@@ -86,7 +86,7 @@ SHELL ["/bin/bash", "-x", "-c"]
 COPY gpg/ /tmp/gpg
 
 
-FROM builderBase AS builder
+FROM builder-base AS builder
 
 ARG NGINX_VERSION
 ARG NGX_BROTLI_COMMIT
