@@ -92,6 +92,8 @@ jobs:
           build-args: |
             NGINX_VERSION=${{ matrix.nginx_version }}
           tags: ${{ env.IMAGE_NAME }}:${{ matrix.nginx_version }}
+          # output to docker so we can test in next step
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
