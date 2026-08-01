@@ -59,6 +59,7 @@ jobs:
             --json number \
             | jq -r '.[0].number // empty')
 
+          echo "pr_number=${PR_NUMBER:-}"
           echo "pr_number=${PR_NUMBER:-}" >> "$GITHUB_OUTPUT"
 
       - name: Create or update PR
