@@ -215,7 +215,7 @@ def update_pr(
         sys.exit(1)
 
     # Fetch and checkout the remote branch (shallow fetch, only need latest commit)
-    run_command(["git", "fetch", "--depth=1", "origin", branch_name])
+    run_command(["git", "fetch", "origin", branch_name])
     run_command(["git", "checkout", "-b", branch_name, "origin/" + branch_name])
 
     # Configure git user for commits (required in clean environments)
