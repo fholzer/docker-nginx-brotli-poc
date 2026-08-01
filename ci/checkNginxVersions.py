@@ -92,19 +92,64 @@ def fetch_github_releases(owner: str, repo: str, per_page: int = 100) -> list[di
         sys.exit(2)
 
 
+def get_minor_version(version_str: str) -> tuple[int, int]:
+    """Extract the major and minor version numbers."""
+    major, minor, _ = parse_version(version_str)
+    return (major, minor)
+
+
+def get_last_n_minors(classified: dict[str, list[str]], n: int = 2) -> dict[str, set[tuple[int, int]]]:
+    """Get the last N minor version groups per category.
+
+    Args:
+        classified: Versions classified into stable/mainline (sorted descending).
+        n: Number of minor versions to include per category.
+
+    Returns:
+        Dict mapping category to set of (major, minor) tuples.
+    """
+    result: dict[str, set[tuple[int, int]]] = {}
+    for category in classified:
+        minors_seen: set[tuple[int, int]] = set()
+        for v in classified[category]:
+            minor_key = get_minor_version(v)
+            if minor_key not in minors_seen:
+                minors_seen.add(minor_key)
+                if len(minors_seen) >= n:
+                    break
+        result[category] = minors_seen
+    return result
+
+
 def find_missing_versions(
     releases: list[str], tracked: list[str]
 ) -> dict[str, list[str]]:
-    """Find versions in releases that are not in tracked list."""
+    """Find versions in releases that are not in tracked list.
+
+    Only considers patch versions within the last 2 minor versions per category
+    (stable/mainline). Older deprecated minor branches are excluded.
+    """
     tracked_set = set(tracked)
+
+    # Classify releases and determine active minor branches
+    classified_releases = classify_versions(releases)
+    active_minors = get_last_n_minors(classified_releases, n=2)
+
     missing: dict[str, list[str]] = {"stable": [], "mainline": []}
 
     for version in releases:
-        if version not in tracked_set:
-            if is_stable(version):
-                missing["stable"].append(version)
-            else:
-                missing["mainline"].append(version)
+        # Skip if already tracked
+        if version in tracked_set:
+            continue
+
+        # Check if this version belongs to an active minor branch
+        minor_key = get_minor_version(version)
+        category = "stable" if is_stable(version) else "mainline"
+
+        if minor_key not in active_minors.get(category, set()):
+            continue
+
+        missing[category].append(version)
 
     # Sort each category descending by version
     for category in missing:
