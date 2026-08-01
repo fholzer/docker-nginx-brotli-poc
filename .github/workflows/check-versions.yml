@@ -1,0 +1,75 @@
+---
+name: Check Nginx Versions
+
+on:
+  # schedule:
+  #   - cron: '30 0 * * *'  # Daily at 00:30 UTC
+  workflow_dispatch:        # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  NGINX_REPO_OWNER: nginx
+  NGINX_REPO_NAME: nginx
+  BASE_BRANCH: main
+  PR_TITLE_PREFIX: "ci: add new nginx versions"
+  BOT_LOGIN: github-actions[bot]
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check for new nginx versions
+        id: check
+        run: |
+          python ci/checkNginxVersions.py \
+            --repo ${{ env.NGINX_REPO_OWNER }}/${{ env.NGINX_REPO_NAME }} \
+            --versions-file versions.txt \
+            --output json > /tmp/versions-result.json
+
+          # Check if there are missing versions using jq
+          MISSING_COUNT=$(jq '[.missing.stable[], .missing.mainline[]] | length' /tmp/versions-result.json)
+
+          echo "missing_count=$MISSING_COUNT" >> "$GITHUB_OUTPUT"
+          echo "result_file=/tmp/versions-result.json" >> "$GITHUB_OUTPUT"
+
+      - name: Exit if no missing versions
+        if: steps.check.outputs.missing_count == '0'
+        run: echo "No new nginx versions to add."
+
+      - name: Get existing PR
+        if: steps.check.outputs.missing_count > 0
+        id: existing-pr
+        run: |
+          PR_NUMBER=$(gh pr list \
+            --state open \
+            --base ${{ env.BASE_BRANCH }} \
+            --author ${{ env.BOT_LOGIN }} \
+            --search "${{ env.PR_TITLE_PREFIX }}" \
+            --json number \
+            | jq -r '.[0].number // empty')
+
+          echo "pr_number=${PR_NUMBER:-}"
+          echo "pr_number=${PR_NUMBER:-}" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update PR
+        if: steps.check.outputs.missing_count > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXISTING_PR: ${{ steps.existing-pr.outputs.pr_number }}
+        run: |
+          python ci/updateVersionsPr.py \
+            --result ${{ steps.check.outputs.result_file }} \
+            --base-branch ${{ env.BASE_BRANCH }} \
+            --pr-number "${{ env.EXISTING_PR }}" \
+            --title-prefix "${{ env.PR_TITLE_PREFIX }}"
