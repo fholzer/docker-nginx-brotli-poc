@@ -50,8 +50,9 @@ jobs:
       - name: Get existing PR
         if: steps.check.outputs.missing_count > 0
         id: existing-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          export GH_TOKEN="$GITHUB_TOKEN"
           PR_NUMBER=$(gh pr list \
             --state open \
             --base ${{ env.BASE_BRANCH }} \
