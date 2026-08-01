@@ -11,7 +11,8 @@ Usage:
 
 Output:
     JSON to stdout with missing versions per category.
-    Exit code 0 if no missing versions, 1 if missing versions found.
+    Exit code 0 on successful execution (regardless of whether missing versions were found).
+    Exit code 2 on errors (e.g., API failure, missing files, invalid arguments).
 """
 
 import argparse
@@ -224,9 +225,10 @@ def main() -> None:
     # Output
     print(json.dumps(result, indent=4))
 
-    # Exit code
-    total_missing = len(missing.get("stable", [])) + len(missing.get("mainline", []))
-    sys.exit(0 if total_missing == 0 else 1)
+    # Always exit with 0 on successful execution.
+    # The presence of missing versions is communicated via JSON output,
+    # not the exit code. Exit codes 1+ are reserved for actual errors.
+    sys.exit(0)
 
 
 if __name__ == "__main__":
