@@ -199,7 +199,7 @@ def update_pr(
             "pr",
             "view",
             pr_number,
-            "--json headRefName",
+            "--json", "headRefName",
             "--jq",
             ".headRefName",
         ]
