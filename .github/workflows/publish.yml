@@ -127,6 +127,8 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           platforms: ${{ env.TARGET_ARCHS }}
+          build-args: |
+            NGINX_VERSION=${{ matrix.nginx_version }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
