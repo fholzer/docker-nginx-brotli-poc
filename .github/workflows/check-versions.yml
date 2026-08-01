@@ -6,9 +6,6 @@ on:
   #   - cron: '30 0 * * *'  # Daily at 00:30 UTC
   workflow_dispatch:        # Allow manual trigger
 
-permissions:
-  contents: write
-  pull-requests: write
 
 env:
   NGINX_REPO_OWNER: nginx
@@ -20,6 +17,9 @@ env:
 jobs:
   check-versions:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,6 +61,7 @@ jobs:
 
           echo "pr_number=${PR_NUMBER:-}"
           echo "pr_number=${PR_NUMBER:-}" >> "$GITHUB_OUTPUT"
+          exit 1
 
       - name: Create or update PR
         if: steps.check.outputs.missing_count > 0
