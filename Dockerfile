@@ -51,7 +51,7 @@ ARG CONFIG="\
 
 FROM alpine:$ALPINE_VERSION AS base
 
-RUN date; apk upgrade --no-cache
+RUN apk upgrade --no-cache
 
 
 FROM base AS builder-base

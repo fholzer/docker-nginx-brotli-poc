@@ -34,3 +34,9 @@ In addition to always using the latest Alpine 3 base image, packages are updated
 Currently I am planning to keep tags for the latest 2 minor versions for each release branch of nginx, stable and mainline.
 
 Untagged images will be removed 12 months after the most recent pull, or after 24 months regardless of pulls.
+
+---
+
+## AI Disclosure
+
+The build scripts in this repository have been written using [Qwen 3.6](https://qwenlm.github.io/).
