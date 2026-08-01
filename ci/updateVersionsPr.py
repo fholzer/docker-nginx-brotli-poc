@@ -97,9 +97,10 @@ def create_pr(
         print("No missing versions to add.")
         return
 
-    # Generate branch name
+    # Generate branch name (include run ID for uniqueness across concurrent runs)
     date_str = get_current_date()
-    branch_name = f"update-nginx-versions-{date_str}"
+    run_id = os.environ.get("GITHUB_RUN_ID", "")
+    branch_name = f"update-nginx-versions-{date_str}-{run_id}" if run_id else f"update-nginx-versions-{date_str}"
 
     # Read existing versions
     existing_versions = read_versions_file("versions.txt")
