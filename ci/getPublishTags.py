@@ -135,7 +135,7 @@ def main() -> None:
     # Write to GITHUB_OUTPUT as multiline heredoc
     github_output = os.environ.get("GITHUB_OUTPUT", "")
     if github_output:
-        lines = ["NGINX_TAGS=<<EOF"]
+        lines = ["NGINX_TAGS<<EOF"]
         for tag in tags:
             lines.append(f"type=raw,value={tag}")
         lines.append("EOF")
