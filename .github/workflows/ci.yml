@@ -42,10 +42,6 @@ jobs:
 
   build-base:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        nginx_version: ${{ fromJson(needs.build-version-list.outputs.nginx_versions) }}
-    needs: build-version-list
 
     steps:
       - uses: actions/checkout@v6
@@ -61,8 +57,6 @@ jobs:
           context: .
           platforms: linux/amd64
           target: builder-base
-          build-args: |
-            NGINX_VERSION=${{ matrix.nginx_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
