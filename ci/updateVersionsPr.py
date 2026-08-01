@@ -214,9 +214,9 @@ def update_pr(
         print("Error: could not determine PR branch name", file=sys.stderr)
         sys.exit(1)
 
-    # Checkout and pull branch
-    run_command(["git", "checkout", branch_name])
-    run_command(["git", "pull", "origin", branch_name])
+    # Fetch and checkout the remote branch (shallow fetch, only need latest commit)
+    run_command(["git", "fetch", "--depth=1", "origin", branch_name])
+    run_command(["git", "checkout", "-b", branch_name, "origin/" + branch_name])
 
     # Configure git user for commits (required in clean environments)
     run_command(["git", "config", "user.email", "github-actions@users.noreply.github.com"])
