@@ -31,13 +31,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Read nginx versions
         id: nginx_versions
-        run: |
-          (
-            echo -n "nginx_versions="
-            jq -R -s -c '[split("\n")[]|select(. | length > 0)]' < versions.txt
-          ) >> "$GITHUB_OUTPUT"
+        run: python ci/getVersionsForCi.py
 
 
   build-base:
