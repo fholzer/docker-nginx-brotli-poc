@@ -112,6 +112,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          flavor: |
+            latest=false
+          images: ${{ env.IMAGE_NAME }}
+          tags: ${{ steps.image_tags.outputs.nginx_tags }}
+
       - name: Build and publish multi-platform images
         uses: docker/build-push-action@v7.3.0
         with:
@@ -119,5 +128,5 @@ jobs:
           context: .
           platforms: ${{ env.TARGET_ARCHS }}
           push: true
-          tags: ${{ steps.image_tags.outputs.nginx_tags }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
