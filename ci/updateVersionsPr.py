@@ -222,15 +222,25 @@ def update_pr(
     run_command(["git", "config", "user.email", "github-actions@users.noreply.github.com"])
     run_command(["git", "config", "user.name", "GitHub Actions"])
 
-    # Read existing versions
-    existing_versions = read_versions_file("versions.txt")
-    existing_set = set(existing_versions)
+    # Read existing versions from the PR branch
+    pr_versions = read_versions_file("versions.txt")
+    pr_versions_set = set(pr_versions)
 
-    # Add missing versions
-    all_versions = list(existing_set)
+    # Determine which missing versions are NOT already in the PR
+    new_versions_for_pr: list[str] = []
     for v in all_missing_versions:
-        if v not in existing_set:
-            all_versions.append(v)
+        if v not in pr_versions_set:
+            new_versions_for_pr.append(v)
+
+    # If all missing versions are already in the PR, exit early
+    if not new_versions_for_pr:
+        print(f"PR #{pr_number} already covers all newly-missing versions. No update needed.")
+        return
+
+    # Add only the new versions to the PR's versions
+    all_versions = list(pr_versions_set)
+    for v in new_versions_for_pr:
+        all_versions.append(v)
 
     # Sort descending
     all_versions.sort(key=parse_version, reverse=True)
