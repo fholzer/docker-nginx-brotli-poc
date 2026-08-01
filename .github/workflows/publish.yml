@@ -57,6 +57,8 @@ jobs:
 
   build-test-and-publish:
     runs-on: ubuntu-latest
+    environment:
+      name: main
     strategy:
       matrix:
         nginx_version: ${{ fromJson(needs.build-version-list.outputs.nginx_versions) }}
