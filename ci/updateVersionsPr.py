@@ -118,6 +118,10 @@ def create_pr(
     run_command(["git", "checkout", base_branch])
     run_command(["git", "checkout", "-b", branch_name])
 
+    # Configure git user for commits (required in clean environments)
+    run_command(["git", "config", "user.email", "github-actions@users.noreply.github.com"])
+    run_command(["git", "config", "user.name", "GitHub Actions"])
+
     # Update versions.txt
     write_versions_file("versions.txt", all_versions)
 
@@ -212,6 +216,10 @@ def update_pr(
     # Checkout and pull branch
     run_command(["git", "checkout", branch_name])
     run_command(["git", "pull", "origin", branch_name])
+
+    # Configure git user for commits (required in clean environments)
+    run_command(["git", "config", "user.email", "github-actions@users.noreply.github.com"])
+    run_command(["git", "config", "user.name", "GitHub Actions"])
 
     # Read existing versions
     existing_versions = read_versions_file("versions.txt")
