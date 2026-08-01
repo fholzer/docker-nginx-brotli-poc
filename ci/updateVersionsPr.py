@@ -23,11 +23,18 @@ import sys
 
 
 def run_command(cmd: list[str], capture: bool = True) -> tuple[str, str, int]:
-    """Run a shell command and return (stdout, stderr, returncode)."""
+    """Run a shell command and return (stdout, stderr, returncode).
+
+    Raises subprocess.CalledProcessError with error details on non-zero exit codes.
+    """
     result = subprocess.run(
         cmd, capture_output=capture, text=True, timeout=120
     )
-    return result.stdout.strip(), result.stderr.strip(), result.returncode
+    if result.returncode != 0:
+        raise subprocess.CalledProcessError(
+            result.returncode, cmd, output=result.stdout, stderr=result.stderr
+        )
+    return result.stdout.strip(), result.stderr.strip(), 0
 
 
 def get_current_date() -> str:
