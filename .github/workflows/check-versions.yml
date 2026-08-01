@@ -61,6 +61,12 @@ jobs:
 
           echo "pr_number=${PR_NUMBER:-}"
           echo "pr_number=${PR_NUMBER:-}" >> "$GITHUB_OUTPUT"
+          # gh pr list
+          gh pr list \
+            --state open \
+            --base ${{ env.BASE_BRANCH }} \
+            --author ${{ env.BOT_LOGIN }} \
+            --search "${{ env.PR_TITLE_PREFIX }}"
           exit 1
 
       - name: Create or update PR
