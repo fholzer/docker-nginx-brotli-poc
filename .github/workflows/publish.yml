@@ -2,11 +2,12 @@
 name: Publish
 
 on:
-  schedule:
-    - cron: '20 11 * * 0'
-  push:
-    branches:
-      - main
+  # schedule:
+  #   - cron: '20 11 * * 0'
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
 
 
 env:

@@ -21,7 +21,11 @@ Use the `mainline` tag if you want the latest development release of nginx. User
 
 ## New Versions
 
-Newly released nginx versions are typically added within 7 days of release. Critical security fixes are usually added sooner. Please note that this is a personal project, so release timelines may vary. Recent changes to the build and release process should enable faster updates going forward.
+Newly released nginx versions are typically added within 7 days of release. Critical security fixes are usually added sooner.
+
+This repository uses an automated daily check ([`check-versions.yml`](.github/workflows/check-versions.yml)) that monitors the [nginx/nginx GitHub releases](https://github.com/nginx/nginx/releases) and automatically creates a PR to add any missing versions to [`versions.txt`](versions.txt). The PR is created by the `github-actions[bot]` user.
+
+Please note that this is a personal project, so release timelines may vary. Recent changes to the build and release process should enable faster updates going forward.
 
 ## Security
 
