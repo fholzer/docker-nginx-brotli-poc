@@ -37,7 +37,7 @@ def get_current_date() -> str:
 
 def get_all_versions_in_title(missing: dict[str, list[str]]) -> list[str]:
     """Get all missing versions formatted for PR title."""
-    versions = []
+    versions: list[str] = []
     for category in ["stable", "mainline"]:
         for v in missing.get(category, []):
             versions.append(f"v{v}")
@@ -57,8 +57,7 @@ def read_versions_file(filepath: str) -> list[str]:
 def write_versions_file(filepath: str, versions: list[str]) -> None:
     """Write versions to file, sorted descending."""
     with open(filepath, "w", encoding="utf-8") as f:
-        for v in versions:
-            f.write(f"{v}\n")
+        f.writelines(f"{v}\n" for v in versions)
 
 
 def parse_version(version_str: str) -> tuple[int, int, int]:
@@ -78,7 +77,7 @@ def create_pr(
     missing = data.get("missing", {})
     release_dates = data.get("release_dates", {})
 
-    all_missing_versions = []
+    all_missing_versions: list[str] = []
     for category in ["stable", "mainline"]:
         all_missing_versions.extend(missing.get(category, []))
 
@@ -168,7 +167,7 @@ def update_pr(
     missing = data.get("missing", {})
     release_dates = data.get("release_dates", {})
 
-    all_missing_versions = []
+    all_missing_versions: list[str] = []
     for category in ["stable", "mainline"]:
         all_missing_versions.extend(missing.get(category, []))
 
@@ -266,7 +265,7 @@ def build_pr_body(
     is_update: bool = False,
 ) -> str:
     """Build the PR body text."""
-    lines = []
+    lines: list[str] = []
 
     if is_update:
         lines.append("## Update: New nginx versions detected")

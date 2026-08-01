@@ -19,8 +19,9 @@ import json
 import os
 import re
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
+from typing import Any
 
 
 def parse_version(version_str: str) -> tuple[int, int, int]:
@@ -39,7 +40,7 @@ def is_stable(version_str: str) -> bool:
 
 def classify_versions(versions: list[str]) -> dict[str, list[str]]:
     """Split versions into stable and mainline categories."""
-    result = {"stable": [], "mainline": []}
+    result: dict[str, list[str]] = {"stable": [], "mainline": []}
     for v in versions:
         if is_stable(v):
             result["stable"].append(v)
@@ -67,7 +68,7 @@ def extract_version_from_tag(tag: str) -> str | None:
     return None
 
 
-def fetch_github_releases(owner: str, repo: str, per_page: int = 100) -> list[dict]:
+def fetch_github_releases(owner: str, repo: str, per_page: int = 100) -> list[dict[str, Any]]:
     """Fetch releases from GitHub API."""
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
     url += f"?per_page={per_page}"
@@ -95,7 +96,7 @@ def find_missing_versions(
 ) -> dict[str, list[str]]:
     """Find versions in releases that are not in tracked list."""
     tracked_set = set(tracked)
-    missing = {"stable": [], "mainline": []}
+    missing: dict[str, list[str]] = {"stable": [], "mainline": []}
 
     for version in releases:
         if version not in tracked_set:
@@ -168,7 +169,7 @@ def main() -> None:
     releases_data = fetch_github_releases(owner, repo)
 
     # Extract versions from release tags
-    github_versions = []
+    github_versions: list[str] = []
     release_dates = {}
     for release in releases_data:
         tag = release.get("tag_name", "")
@@ -180,8 +181,8 @@ def main() -> None:
                 release_dates[version] = published_at[:10]  # YYYY-MM-DD
 
     # Remove duplicates while preserving order (GitHub returns newest first)
-    seen = set()
-    unique_versions = []
+    seen: set[str] = set()
+    unique_versions: list[str] = []
     for v in github_versions:
         if v not in seen:
             seen.add(v)
