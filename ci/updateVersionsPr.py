@@ -31,6 +31,11 @@ def run_command(cmd: list[str], capture: bool = True) -> tuple[str, str, int]:
         cmd, capture_output=capture, text=True, timeout=120
     )
     if result.returncode != 0:
+        print(f"Command failed: {' '.join(cmd)}", file=sys.stderr)
+        if result.stdout:
+            print(f"stdout: {result.stdout}", file=sys.stderr)
+        if result.stderr:
+            print(f"stderr: {result.stderr}", file=sys.stderr)
         raise subprocess.CalledProcessError(
             result.returncode, cmd, output=result.stdout, stderr=result.stderr
         )
