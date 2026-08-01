@@ -240,7 +240,7 @@ def main() -> None:
     )
 
     # Build result
-    result = {
+    result: dict[str, Any] = {
         "missing": missing,
         "latest_stable_in_versions": latest_stable_in_versions,
         "latest_mainline_in_versions": latest_mainline_in_versions,
