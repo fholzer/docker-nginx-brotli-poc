@@ -100,7 +100,7 @@ jobs:
     needs:
       - build-version-list
       - build-base
-      # - set-pr-status-in-progress
+      - set-pr-status-in-progress
 
     steps:
       - uses: actions/checkout@v7
