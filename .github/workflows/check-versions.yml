@@ -88,6 +88,9 @@ jobs:
             --title-prefix "${{ env.PR_TITLE_PREFIX }}" \
             --output "$GITHUB_OUTPUT"
 
+          # TODO: debug
+          cat $GITHUB_OUTPUT
+
       - name: Trigger CI Workflow
         if: steps.check.outputs.missing_count > 0 && steps.update-pr.outputs.changes > 0
         env:
