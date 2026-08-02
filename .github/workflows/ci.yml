@@ -42,7 +42,7 @@ jobs:
           gh api --method POST /repos/${{ github.repository }}/statuses/${{ github.event.inputs.pr_sha }} \
             -f state="pending" \
             -f context="CI" \
-            -f description="Running automated workflows..."
+            -f description="Running automated workflows..." \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   build-version-list:
