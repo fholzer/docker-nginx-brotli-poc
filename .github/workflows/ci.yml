@@ -34,6 +34,8 @@ jobs:
     permissions:
       statuses: write
     if: github.event_name == 'workflow_dispatch'
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Create GitHub Check Run
         run: |
@@ -150,6 +152,8 @@ jobs:
       - build-and-test
       - set-pr-status-in-progress
     if: github.event_name == 'workflow_dispatch' && always()
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Update GitHub Check Run
         run: |
