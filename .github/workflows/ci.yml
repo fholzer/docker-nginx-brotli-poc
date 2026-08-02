@@ -15,11 +15,6 @@ on:
         type: string
 
 
-permissions:
-  contents: read
-  security-events: write
-
-
 env:
   IMAGE_NAME: nginx-brotli-poc
 
@@ -27,6 +22,8 @@ env:
 jobs:
   set-pr-status-in-progress:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
     if: github.event_name == 'workflow_dispatch'
     outputs:
       check_id: ${{ steps.check.outputs.check_id }}
@@ -42,6 +39,8 @@ jobs:
 
   build-version-list:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       nginx_versions: ${{ steps.nginx_versions.outputs.nginx_versions }}
     steps:
@@ -58,6 +57,8 @@ jobs:
 
   build-base:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v6
@@ -79,6 +80,9 @@ jobs:
 
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     strategy:
       matrix:
         nginx_version: ${{ fromJson(needs.build-version-list.outputs.nginx_versions) }}
@@ -131,6 +135,8 @@ jobs:
 
   update-ci-status:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
     needs:
       - build-and-test
       - set-pr-status-in-progress
