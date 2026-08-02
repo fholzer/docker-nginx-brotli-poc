@@ -80,13 +80,14 @@ def parse_version(version_str: str) -> tuple[int, int, int]:
     return int(parts[0]), int(parts[1]), int(parts[2])
 
 
-def write_github_output(output_path: str | None, changes: int, branch_name: str) -> None:
+def write_github_output(output_path: str | None, changes: int, branch_name: str, pr_number: str = "") -> None:
     """Write results to GitHub Actions output file.
 
     Args:
         output_path: Path to GITHUB_OUTPUT file, or None to skip writing.
         changes: 1 if changes were made, 0 if not.
         branch_name: Name of the branch for the PR.
+        pr_number: PR number (empty string if N/A).
     """
     if output_path is None:
         return
@@ -94,10 +95,11 @@ def write_github_output(output_path: str | None, changes: int, branch_name: str)
     with open(output_path, "a", encoding="utf-8") as f:
         f.write(f"changes={changes}\n")
         f.write(f"branch={branch_name}\n")
+        f.write(f"pr_number={pr_number}\n")
 
 
 def create_pr(
-    result_file: str, base_branch: str, title_prefix: str, output_path: str | None = None
+    result_file: str, base_branch: str, title_prefix: str, output_path: str | None = None, pr_branch: str | None = None
 ) -> None:
     """Create a new PR with missing versions."""
     # Read result data
@@ -190,8 +192,16 @@ def create_pr(
 
     print(f"PR created: {stdout}")
 
-    # Write output: changes=1 (new PR created), branch_name
-    write_github_output(output_path, 1, branch_name)
+    # Extract PR number from the output URL (e.g., "https://github.com/owner/repo/pull/123")
+    pr_number = ""
+    if stdout:
+        for part in stdout.split():
+            if "/pull/" in part:
+                pr_number = part.split("/pull/")[-1].strip(")")
+                break
+
+    # Write output: changes=1 (new PR created), branch_name, pr_number
+    write_github_output(output_path, 1, branch_name, pr_number)
 
 
 def update_pr(
@@ -211,8 +221,8 @@ def update_pr(
 
     if not all_missing_versions:
         print("No new missing versions to add.")
-        # Write output: changes=0 (no update needed), branch_name from --pr-branch
-        write_github_output(output_path, 0, pr_branch or "")
+        # Write output: changes=0 (no update needed), branch_name from --pr-branch, pr_number
+        write_github_output(output_path, 0, pr_branch or "", pr_number)
         return
 
     # Use the branch name from --pr-branch argument
@@ -243,8 +253,8 @@ def update_pr(
     # If all missing versions are already in the PR, exit early
     if not new_versions_for_pr:
         print(f"PR #{pr_number} already covers all newly-missing versions. No update needed.")
-        # Write output: changes=0 (no update needed), branch_name
-        write_github_output(output_path, 0, branch_name)
+        # Write output: changes=0 (no update needed), branch_name, pr_number
+        write_github_output(output_path, 0, branch_name, pr_number)
         return
 
     # Add only the new versions to the PR's versions
@@ -299,8 +309,8 @@ def update_pr(
 
     print(f"PR #{pr_number} updated.")
 
-    # Write output: changes=1 (PR was updated), branch_name
-    write_github_output(output_path, 1, branch_name)
+    # Write output: changes=1 (PR was updated), branch_name, pr_number
+    write_github_output(output_path, 1, branch_name, pr_number)
 
 
 def build_pr_body(
@@ -403,7 +413,7 @@ def main() -> None:
     if args.pr_number:
         update_pr(args.pr_number, args.result, args.base_branch, args.title_prefix, args.output, args.pr_branch)
     else:
-        create_pr(args.result, args.base_branch, args.title_prefix, args.output)
+        create_pr(args.result, args.base_branch, args.title_prefix, args.output, args.pr_branch)
 
 
 if __name__ == "__main__":
