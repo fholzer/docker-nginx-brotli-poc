@@ -16,12 +16,9 @@ on:
     inputs:
       pr_sha:
         description: 'The exact head SHA of the PR commit'
-        required: true
+        required: false
         type: string
-      pr_number:
-        description: 'The PR number'
-        required: true
-        type: string
+        default: ""
 
 
 env:
@@ -33,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       statuses: write
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_sha != ''
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -52,9 +49,6 @@ jobs:
     outputs:
       nginx_versions: ${{ steps.nginx_versions.outputs.nginx_versions }}
     steps:
-      - name: debug
-        run: |
-          echo github.event.pull_request.head.ref=${{ github.event.pull_request.head.ref }}
       - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v7
@@ -151,7 +145,7 @@ jobs:
     needs:
       - build-and-test
       - set-pr-status-in-progress
-    if: github.event_name == 'workflow_dispatch' && always()
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_sha != '' && always()
     env:
       GH_TOKEN: ${{ github.token }}
     steps:

@@ -89,9 +89,6 @@ jobs:
             --title-prefix "${{ env.PR_TITLE_PREFIX }}" \
             --output "$GITHUB_OUTPUT"
 
-          # TODO: debug
-          cat $GITHUB_OUTPUT
-
       - name: Trigger CI Workflow
         if: steps.check.outputs.missing_count > 0 && steps.update-pr.outputs.changes > 0
         env:
@@ -99,11 +96,4 @@ jobs:
         run: |
           # get sha of branch head
           PR_SHA="$(gh api repos/${{ github.repository }}/git/ref/heads/${{ steps.update-pr.outputs.branch }} --jq .object.sha)"
-          echo PR_SHA=$PR_SHA
-          gh workflow run ci.yml --ref ${{ steps.update-pr.outputs.branch }} -f pr_sha="$PR_SHA" -f pr_number="${{ steps.update-pr.outputs.pr_number }}"
-
-          # curl -X POST \
-          #   -H "Authorization: Bearer ${{ github.token  }}" \
-          #   -H "Accept: application/vnd.github+json" \
-          #   https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci.yml/dispatches \
-          #   -d "{\"ref\":\"${PR_SHA}\"}"
+          gh workflow run ci.yml --ref ${{ steps.update-pr.outputs.branch }} -f pr_sha="$PR_SHA"
