@@ -44,6 +44,9 @@ jobs:
     outputs:
       nginx_versions: ${{ steps.nginx_versions.outputs.nginx_versions }}
     steps:
+      - name: debug
+        run: |
+          echo github.event.pull_request.head.ref=${{ github.event.pull_request.head.ref }}
       - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v7
