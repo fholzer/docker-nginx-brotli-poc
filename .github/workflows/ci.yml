@@ -20,22 +20,22 @@ env:
 
 
 jobs:
-  set-pr-status-in-progress:
-    runs-on: ubuntu-latest
-    permissions:
-      checks: write
-    if: github.event_name == 'workflow_dispatch'
-    outputs:
-      check_id: ${{ steps.check.outputs.check_id }}
-    steps:
-      - name: Create GitHub Check Run
-        uses: LouisBrunner/checks-action@v3
-        id: check
-        with:
-          token: ${{ github.token }}
-          name: "CI"
-          sha: ${{ github.event.inputs.pr_sha }}
-          status: "in_progress"
+  # set-pr-status-in-progress:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     checks: write
+  #   if: github.event_name == 'workflow_dispatch'
+  #   outputs:
+  #     check_id: ${{ steps.check.outputs.check_id }}
+  #   steps:
+  #     - name: Create GitHub Check Run
+  #       uses: LouisBrunner/checks-action@v3
+  #       id: check
+  #       with:
+  #         token: ${{ github.token }}
+  #         name: "CI"
+  #         sha: ${{ github.event.inputs.pr_sha }}
+  #         status: "in_progress"
 
   build-version-list:
     runs-on: ubuntu-latest
@@ -89,7 +89,7 @@ jobs:
     needs:
       - build-version-list
       - build-base
-      - set-pr-status-in-progress
+      # - set-pr-status-in-progress
 
     steps:
       - uses: actions/checkout@v7
@@ -133,21 +133,21 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-  update-ci-status:
-    runs-on: ubuntu-latest
-    permissions:
-      checks: write
-    needs:
-      - build-and-test
-      - set-pr-status-in-progress
-    if: github.event_name == 'workflow_dispatch' && always()
-    steps:
-      - name: Update GitHub Check Run
-        uses: LouisBrunner/checks-action@v3
-        with:
-          token: ${{ github.token }}
-          id: ${{ needs.set-pr-status-in-progress.outputs.check_id }}
-          sha: ${{ github.event.inputs.pr_sha }}
-          status: "completed"
-          conclusion: ${{ needs.build-and-test.result }}
-          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+  # update-ci-status:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     checks: write
+  #   needs:
+  #     - build-and-test
+  #     - set-pr-status-in-progress
+  #   if: github.event_name == 'workflow_dispatch' && always()
+  #   steps:
+  #     - name: Update GitHub Check Run
+  #       uses: LouisBrunner/checks-action@v3
+  #       with:
+  #         token: ${{ github.token }}
+  #         id: ${{ needs.set-pr-status-in-progress.outputs.check_id }}
+  #         sha: ${{ github.event.inputs.pr_sha }}
+  #         status: "completed"
+  #         conclusion: ${{ needs.build-and-test.result }}
+  #         details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
