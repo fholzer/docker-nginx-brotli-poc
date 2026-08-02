@@ -18,6 +18,7 @@ jobs:
   check-versions:
     runs-on: ubuntu-latest
     permissions:
+      actions: write  # Required to use 'gh workflow run'
       contents: write
       pull-requests: write
     steps:
