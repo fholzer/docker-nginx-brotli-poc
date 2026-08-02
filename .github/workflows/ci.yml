@@ -28,13 +28,16 @@ jobs:
   set-pr-status-in-progress:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
+    outputs:
+      check_id: ${{ steps.check.outputs.check_id }}
     steps:
       - name: Create GitHub Check Run
-        uses: LouisBouchard/github-actions-check-run@v1
+        uses: LouisBrunner/checks-action@v3
+        id: check
         with:
           token: ${{ github.token }}
           name: "CI"
-          head_sha: ${{ github.event.inputs.pr_sha }}
+          sha: ${{ github.event.inputs.pr_sha }}
           status: "in_progress"
 
   build-version-list:
@@ -134,9 +137,11 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && always()
     steps:
       - name: Update GitHub Check Run
-        uses: LouisBouchard/github-actions-check-run@v1
+        uses: LouisBrunner/checks-action@v3
         with:
           token: ${{ github.token }}
-          name: "CI"
-          head_sha: ${{ github.event.inputs.pr_sha }}
-          status: ${{ needs.build-and-test.result }}
+          id: ${{ needs.set-pr-status-in-progress.outputs.check_id }}
+          sha: ${{ github.event.inputs.pr_sha }}
+          status: "completed"
+          conclusion: ${{ needs.build-and-test.result }}
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
