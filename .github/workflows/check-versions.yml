@@ -60,11 +60,21 @@ jobs:
             --search "${{ env.PR_TITLE_PREFIX }}" \
             --json number \
             | jq -r '.[0].number // empty')
+          PR_REF=$(gh pr list \
+            --state open \
+            --base ${{ env.BASE_BRANCH }} \
+            --author ${{ env.BOT_LOGIN }} \
+            --search "${{ env.PR_TITLE_PREFIX }}" \
+            --json headRefName \
+            | jq -r '.[0].headRefName // empty')
 
           echo "pr_number=${PR_NUMBER:-}"
           echo "pr_number=${PR_NUMBER:-}" >> "$GITHUB_OUTPUT"
+          echo "pr_ref=${PR_REF:-}"
+          echo "pr_ref=${PR_REF:-}" >> "$GITHUB_OUTPUT"
 
       - name: Create or update PR
+        id: update-pr
         if: steps.check.outputs.missing_count > 0
         env:
           GH_TOKEN: ${{ github.token }}
@@ -74,4 +84,16 @@ jobs:
             --result ${{ steps.check.outputs.result_file }} \
             --base-branch ${{ env.BASE_BRANCH }} \
             --pr-number "${{ env.EXISTING_PR }}" \
-            --title-prefix "${{ env.PR_TITLE_PREFIX }}"
+            --pr-branch "${{ steps.existing-pr.outputs.pr_ref }}" \
+            --title-prefix "${{ env.PR_TITLE_PREFIX }}" \
+            --output "$GITHUB_OUTPUT"
+
+          # TODO: debug
+          cat $GITHUB_OUTPUT
+
+      - name: Trigger CI Workflow
+        if: steps.check.outputs.missing_count > 0 && steps.update-pr.outputs.changes > 0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run ci.yml --ref ${{ steps.update-pr.outputs.branch }}

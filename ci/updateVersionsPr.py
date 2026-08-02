@@ -3,7 +3,7 @@
 Create or update a GitHub PR to add missing nginx versions to versions.txt.
 
 Reads the JSON output from checkNginxVersions.py and either:
-- Creates a new PR with a branch `update-nginx-versions-YYYY-MM-DD`
+- Creates a new PR with a branch `update-nginx-versions-YYYY-MM-DD-{run_id}`
 - Updates an existing PR from github-actions[bot]
 
 Usage:
@@ -11,7 +11,9 @@ Usage:
         --result /tmp/versions-result.json \
         --base-branch main \
         --pr-number "123" \
-        --title-prefix "ci: add missing nginx versions"
+        --pr-branch "update-nginx-versions-2026-01-01-12345" \
+        --title-prefix "ci: add missing nginx versions" \
+        --output "$GITHUB_OUTPUT"
 """
 
 import argparse
@@ -78,8 +80,24 @@ def parse_version(version_str: str) -> tuple[int, int, int]:
     return int(parts[0]), int(parts[1]), int(parts[2])
 
 
+def write_github_output(output_path: str | None, changes: int, branch_name: str) -> None:
+    """Write results to GitHub Actions output file.
+
+    Args:
+        output_path: Path to GITHUB_OUTPUT file, or None to skip writing.
+        changes: 1 if changes were made, 0 if not.
+        branch_name: Name of the branch for the PR.
+    """
+    if output_path is None:
+        return
+
+    with open(output_path, "a", encoding="utf-8") as f:
+        f.write(f"changes={changes}\n")
+        f.write(f"branch={branch_name}\n")
+
+
 def create_pr(
-    result_file: str, base_branch: str, title_prefix: str
+    result_file: str, base_branch: str, title_prefix: str, output_path: str | None = None
 ) -> None:
     """Create a new PR with missing versions."""
     # Read result data
@@ -172,9 +190,12 @@ def create_pr(
 
     print(f"PR created: {stdout}")
 
+    # Write output: changes=1 (new PR created), branch_name
+    write_github_output(output_path, 1, branch_name)
+
 
 def update_pr(
-    pr_number: str, result_file: str, base_branch: str, title_prefix: str
+    pr_number: str, result_file: str, base_branch: str, title_prefix: str, output_path: str | None = None, pr_branch: str | None = None
 ) -> None:
     """Update an existing PR with new missing versions."""
     # Read result data
@@ -190,29 +211,16 @@ def update_pr(
 
     if not all_missing_versions:
         print("No new missing versions to add.")
+        # Write output: changes=0 (no update needed), branch_name from --pr-branch
+        write_github_output(output_path, 0, pr_branch or "")
         return
 
-    # Get the branch from the existing PR
-    stdout, stderr, rc = run_command(
-        [
-            "gh",
-            "pr",
-            "view",
-            pr_number,
-            "--json", "headRefName",
-            "--jq",
-            ".headRefName",
-        ]
-    )
-
-    if rc != 0:
-        print(f"Error getting PR branch: {stderr}", file=sys.stderr)
+    # Use the branch name from --pr-branch argument
+    if not pr_branch:
+        print("Error: --pr-branch is required when updating an existing PR", file=sys.stderr)
         sys.exit(1)
 
-    branch_name = stdout.strip()
-    if not branch_name:
-        print("Error: could not determine PR branch name", file=sys.stderr)
-        sys.exit(1)
+    branch_name = pr_branch
 
     # Fetch and checkout the remote branch (shallow fetch, only need latest commit)
     run_command(["git", "fetch", "origin", branch_name])
@@ -235,6 +243,8 @@ def update_pr(
     # If all missing versions are already in the PR, exit early
     if not new_versions_for_pr:
         print(f"PR #{pr_number} already covers all newly-missing versions. No update needed.")
+        # Write output: changes=0 (no update needed), branch_name
+        write_github_output(output_path, 0, branch_name)
         return
 
     # Add only the new versions to the PR's versions
@@ -288,6 +298,9 @@ def update_pr(
     )
 
     print(f"PR #{pr_number} updated.")
+
+    # Write output: changes=1 (PR was updated), branch_name
+    write_github_output(output_path, 1, branch_name)
 
 
 def build_pr_body(
@@ -373,12 +386,24 @@ def main() -> None:
         default="ci: add missing nginx versions",
         help="PR title prefix",
     )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="Path to GitHub Actions output file (e.g. $GITHUB_OUTPUT)",
+    )
+    parser.add_argument(
+        "--pr-branch",
+        type=str,
+        default=None,
+        help="Existing PR branch name (used for output when no update is needed)",
+    )
     args = parser.parse_args()
 
     if args.pr_number:
-        update_pr(args.pr_number, args.result, args.base_branch, args.title_prefix)
+        update_pr(args.pr_number, args.result, args.base_branch, args.title_prefix, args.output, args.pr_branch)
     else:
-        create_pr(args.result, args.base_branch, args.title_prefix)
+        create_pr(args.result, args.base_branch, args.title_prefix, args.output)
 
 
 if __name__ == "__main__":
