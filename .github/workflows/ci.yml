@@ -26,6 +26,11 @@ env:
 
 
 jobs:
+  # The check-versions workflow creates a PR when it detects new versions. Because workflows
+  # don't trigger other workflows automatically, it invokes this workflow via workflow_dispatch
+  # on the PR it creates.
+  # For some reason only known to GitHub, even explicitely triggered workflows don't show up as
+  # CI checks on PRs, so we have to manually set the status on the PR branch's HEAD SHA.
   set-pr-status-in-progress:
     runs-on: ubuntu-latest
     permissions:
