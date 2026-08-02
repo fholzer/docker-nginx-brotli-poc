@@ -100,4 +100,4 @@ jobs:
           # get sha of branch head
           PR_SHA="$(gh api repos/${{ github.repository }}/git/ref/heads/${{ steps.update-pr.outputs.branch }} --jq .object.sha)"
           echo PR_SHA=$PR_SHA
-          gh workflow run ci.yml --ref $PR_SHA
+          gh workflow run ci.yml --ref ${{ steps.update-pr.outputs.branch }} -f pr_sha="$PR_SHA"
