@@ -26,34 +26,31 @@ env:
 
 
 jobs:
-  # The check-versions workflow creates a PR when it detects new versions. Because workflows
-  # don't trigger other workflows automatically, it invokes this workflow via workflow_dispatch
-  # on the PR it creates.
-  # For some reason only known to GitHub, even explicitely triggered workflows don't show up as
-  # CI checks on PRs, so we have to manually set the status on the PR branch's HEAD SHA.
-  set-pr-status-in-progress:
-    runs-on: ubuntu-latest
-    permissions:
-      statuses: write
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_sha != ''
-    env:
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - name: Create GitHub Check Run
-        run: |
-          gh api --method POST /repos/${{ github.repository }}/statuses/${{ github.event.inputs.pr_sha }} \
-            -f state="pending" \
-            -f context="CI" \
-            -f description="Running automated workflows..." \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
   build-version-list:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      statuses: write
+    env:
+      GH_TOKEN: ${{ github.token }}
     outputs:
       nginx_versions: ${{ steps.nginx_versions.outputs.nginx_versions }}
     steps:
+      # The check-versions workflow creates a PR when it detects new versions. Because workflows
+      # don't trigger other workflows automatically, it invokes this workflow via workflow_dispatch
+      # on the PR it creates.
+      # For some reason only known to GitHub, even explicitely triggered workflows don't show up as
+      # CI checks on PRs, so we have to manually set the status on the PR branch's HEAD SHA.
+      - name: Create GitHub Check Run
+        run: |
+          if [[ "${{github.event_name}}" == "workflow_dispatch" && "${{github.event.inputs.pr_sha}}" != "" ]]; then
+            gh api --method POST /repos/${{ github.repository }}/statuses/${{ github.event.inputs.pr_sha }} \
+              -f state="pending" \
+              -f context="CI" \
+              -f description="Running automated workflows..." \
+              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+
       - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v7
@@ -99,7 +96,6 @@ jobs:
     needs:
       - build-version-list
       - build-base
-      - set-pr-status-in-progress
 
     steps:
       - uses: actions/checkout@v7
@@ -149,7 +145,6 @@ jobs:
       statuses: write
     needs:
       - build-and-test
-      - set-pr-status-in-progress
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_sha != '' && always()
     env:
       GH_TOKEN: ${{ github.token }}
